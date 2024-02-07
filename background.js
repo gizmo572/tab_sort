@@ -9,7 +9,8 @@ chrome.runtime.onMessage.addListener((request) => {
       windows.forEach((window) => {
         // create an array of all tabs in the current window, then sort them alphabetically by title
         let tabs = window.tabs.slice();
-        tabs.sort((a, b) => a.title.localeCompare(b.title));
+
+        tabs.sort((a, b) => a.url.localeCompare(b.url));
         console.log('tabs', tabs)
         // reassign position of each tab in window to its index in the 'tabs' array created above
         tabs.forEach((tab, idx) => {
