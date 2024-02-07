@@ -15,7 +15,8 @@
     "activeTab",
     "scripting",
     "storage",
-    "tabs"
+    "tabs",
+    "system.display"
   ],
   "host_permissions": [
     "http://*/*",
