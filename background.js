@@ -6,7 +6,7 @@ function onStart() {
   });  
 };
 
-let displayWidth, displayHeight;
+let displayWidth, displayHeight, cycleIndex = 0;
 
 onStart();
 
@@ -75,4 +75,18 @@ chrome.runtime.onMessage.addListener((request) => {
       };
     });
   };
+  if (request === 'cycleWindows') {
+    chrome.windows.getAll({ populate: true }, (windows) => {
+      console.log('windows', windows)
+      chrome.windows.update(windows[cycleIndex % windows.length].id, {
+        left: 0,
+        top: 0,
+        width: displayWidth,
+        height: displayHeight,
+        focused: true,
+      });
+    });
+    cycleIndex++;
+  };
+
 });
