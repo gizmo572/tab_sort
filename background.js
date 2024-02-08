@@ -1,12 +1,13 @@
 function onStart() {
   chrome.system.display.getInfo(async (displays) => {
-    console.log(displays[0].bounds.height)
+    console.log(displays)
+    displaysArray = displays;
     displayWidth = await displays[0].bounds.width;
     displayHeight = await displays[0].bounds.height;
   });  
 };
 
-let displayWidth, displayHeight, cycleIndex = 0;
+let displayWidth, displayHeight, displaysArray, cycleIndex = 0;
 
 onStart();
 
@@ -75,14 +76,16 @@ chrome.runtime.onMessage.addListener((request) => {
       };
     });
   };
-  if (request === 'cycleWindows') {
+  if (Array.isArray(request) && request[0] === 'cycleWindows') {
+    if (request.length < 2) throw Error('cycleWindows request Array should have a length of 2.')
+    const monitorIndex = request[1];
+    const display = displaysArray[monitorIndex];
     chrome.windows.getAll({ populate: true }, (windows) => {
-      console.log('windows', windows)
       chrome.windows.update(windows[cycleIndex % windows.length].id, {
-        left: 0,
-        top: 0,
-        width: displayWidth,
-        height: displayHeight,
+        left: display.bounds.left,
+        top: display.bounds.top,
+        width: display.bounds.width,
+        height: display.bounds.height,
         focused: true,
       });
     });

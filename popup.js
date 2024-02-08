@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   cycleWindowsBTN.addEventListener('click', () => {
-    chrome.runtime.sendMessage('cycleWindows');
-  })
+    const displayNumber = document.querySelector('input#display_number').value;
+    chrome.runtime.sendMessage(['cycleWindows', displayNumber]);
+  });
 });
