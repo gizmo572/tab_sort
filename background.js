@@ -83,22 +83,29 @@ chrome.runtime.onMessage.addListener((request) => {
     });
   };
   if (request === 'cycleWindows') {
-    chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
-      if (!Object.hasOwn(result, 'primaryDisplayNumber')) throw Error('primaryDisplayNumber not found in local storage.');
-      const monitorIndex = result.primaryDisplayNumber - 1;
-      console.log('monitorindex', monitorIndex, typeof monitorIndex)
-      const display = displaysArray[monitorIndex];
-      chrome.windows.getAll({ populate: true }, (windows) => {
-        chrome.windows.update(windows[cycleIndex % windows.length].id, {
-          left: display.bounds.left,
-          top: display.bounds.top,
-          width: display.bounds.width,
-          height: display.bounds.height,
-          focused: true,
+    chrome.windows.getLastFocused((window) => {
+      const currentWindow = window.id;
+      chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
+        if (!Object.hasOwn(result, 'primaryDisplayNumber')) throw Error('primaryDisplayNumber not found in local storage.');
+        const monitorIndex = result.primaryDisplayNumber - 1;
+        const display = displaysArray[monitorIndex];
+        chrome.windows.getAll({ populate: true }, (windows) => {
+          console.log('windows', windows, cycleIndex, windows[cycleIndex % windows.length].id === currentWindow, windows[cycleIndex % windows.length].id, currentWindow)
+          //if the next window in the cycle is the current active window, skip it
+          if (windows[cycleIndex % windows.length].id === currentWindow) cycleIndex++;
+
+          chrome.windows.update(windows[cycleIndex % windows.length].id, {
+            left: display.bounds.left,
+            top: display.bounds.top,
+            width: display.bounds.width,
+            height: display.bounds.height,
+            focused: true,
+          });
+          chrome.windows.update(currentWindow, { focused: true });
         });
+        cycleIndex++;
       });
-      cycleIndex++;
-    });
+    })
   };
 
 });
