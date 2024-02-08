@@ -4,7 +4,13 @@ function onStart() {
     displaysArray = displays;
     displayWidth = await displays[0].bounds.width;
     displayHeight = await displays[0].bounds.height;
-  });  
+  });
+
+  chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
+    if (!Object.hasOwn(result, 'primaryDisplayNumber')) {
+      chrome.storage.local.set({ 'primaryDisplayNumber': 1 });
+    };
+  });
 };
 
 let displayWidth, displayHeight, displaysArray, cycleIndex = 0;
@@ -76,20 +82,23 @@ chrome.runtime.onMessage.addListener((request) => {
       };
     });
   };
-  if (Array.isArray(request) && request[0] === 'cycleWindows') {
-    if (request.length < 2) throw Error('cycleWindows request Array should have a length of 2.')
-    const monitorIndex = request[1];
-    const display = displaysArray[monitorIndex];
-    chrome.windows.getAll({ populate: true }, (windows) => {
-      chrome.windows.update(windows[cycleIndex % windows.length].id, {
-        left: display.bounds.left,
-        top: display.bounds.top,
-        width: display.bounds.width,
-        height: display.bounds.height,
-        focused: true,
+  if (request === 'cycleWindows') {
+    chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
+      if (!Object.hasOwn(result, 'primaryDisplayNumber')) throw Error('primaryDisplayNumber not found in local storage.');
+      const monitorIndex = result.primaryDisplayNumber;
+      console.log('monitorindex', monitorIndex, typeof monitorIndex)
+      const display = displaysArray[monitorIndex];
+      chrome.windows.getAll({ populate: true }, (windows) => {
+        chrome.windows.update(windows[cycleIndex % windows.length].id, {
+          left: display.bounds.left,
+          top: display.bounds.top,
+          width: display.bounds.width,
+          height: display.bounds.height,
+          focused: true,
+        });
       });
+      cycleIndex++;
     });
-    cycleIndex++;
   };
 
 });
