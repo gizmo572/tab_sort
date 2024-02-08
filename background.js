@@ -85,7 +85,7 @@ chrome.runtime.onMessage.addListener((request) => {
   if (request === 'cycleWindows') {
     chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
       if (!Object.hasOwn(result, 'primaryDisplayNumber')) throw Error('primaryDisplayNumber not found in local storage.');
-      const monitorIndex = result.primaryDisplayNumber;
+      const monitorIndex = result.primaryDisplayNumber - 1;
       console.log('monitorindex', monitorIndex, typeof monitorIndex)
       const display = displaysArray[monitorIndex];
       chrome.windows.getAll({ populate: true }, (windows) => {

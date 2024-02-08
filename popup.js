@@ -1,5 +1,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
+  chrome.storage.local.get(['primaryDisplayNumber'], (result) => {
+    document.querySelector('input#display_number').value = result.primaryDisplayNumber;
+  })
   const sortTabsBTN = document.querySelector('button#sort_tabs');
   const arrangeWindowsBTN = document.querySelector('button#arrange_windows');
   const cycleWindowsBTN = document.querySelector('button#cycle_windows');
@@ -19,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setPrimaryDisplayBTN.addEventListener('click', () => {
     const displayNumber = document.querySelector('input#display_number').value;
-    chrome.runtime.sendMessage(['setPrimaryDisplay', displayNumber])
-  })
+    chrome.storage.local.set({ 'primaryDisplayNumber': displayNumber });
+  });
 
 });
