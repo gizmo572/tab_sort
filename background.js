@@ -47,21 +47,23 @@ chrome.runtime.onMessage.addListener((request) => {
         // 1 or 2 windows per monitor
         let displayIdx = -1, left, width;
         for (let i = 0; i < windows.length; i++) {
-          width = displaysArray[displayIdx].bounds.width;
-          left = displaysArray[displayIdx].bounds.left;
-
+          
           // if # of windows remaining is equal to # of displays remaining, move to a new monitor, and leave the window as fullscreen.
           if (windows.length - i < displaysArray.length - displayIdx) {
             displayIdx++;
+            width = displaysArray[displayIdx].bounds.width;
+            left = displaysArray[displayIdx].bounds.left;
 
-          // the i is even, this indicates the previous window is full, so move to a new monitor. There are more windows than monitors, so reduce width to take up only half the screen width.
+          // if i is even, this indicates the previous window is full, so move to a new monitor. There are more windows than monitors, so reduce width to take up only half the screen width.
+          } else if (i % 2 === 0) {
             displayIdx++;
-            width /= 2;
+            width = displaysArray[displayIdx].bounds.width / 2;
+            left = displaysArray[displayIdx].bounds.left;
 
           // otherwise, current window must be the 2nd window in the current monitor, so reduce width and increment 'left' so the windows dont overlap.
           } else {
-            width /= 2;
-            left += width;
+            width = displaysArray[displayIdx].bounds.width / 2;
+            left = displaysArray[displayIdx].bounds.left + width;
           }
           chrome.windows.update(windows[i].id, {
             left: left,
