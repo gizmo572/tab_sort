@@ -13,7 +13,7 @@ function onStart() {
   });
 };
 
-let displayWidth, displayHeight, displaysArray, cycleIndex = 0;
+let displayWidth, displayHeight, displaysArray, cycleIndex = 0, carouselIndex = 0;
 
 onStart();
 
@@ -38,43 +38,13 @@ chrome.runtime.onMessage.addListener((request) => {
   };
 
   if (request === 'arrangeWindows') {
-
-    chrome.windows.getAll({ populate: true }, (windows) => {
-      console.log('windows', windows)
-      let ratio = windows.length / displaysArray.length;
-      console.log('ratio', ratio)
-
-        // 1 or 2 windows per monitor
-        let displayIdx = -1, left, width;
-        for (let i = 0; i < windows.length; i++) {
-          
-          // if # of windows remaining is equal to # of displays remaining, move to a new monitor, and leave the window as fullscreen.
-          if (windows.length - i < displaysArray.length - displayIdx) {
-            displayIdx++;
-            width = displaysArray[displayIdx].bounds.width;
-            left = displaysArray[displayIdx].bounds.left;
-
-          // if i is even, this indicates the previous window is full, so move to a new monitor. There are more windows than monitors, so reduce width to take up only half the screen width.
-          } else if (i % 2 === 0) {
-            displayIdx++;
-            width = displaysArray[displayIdx].bounds.width / 2;
-            left = displaysArray[displayIdx].bounds.left;
-
-          // otherwise, current window must be the 2nd window in the current monitor, so reduce width and increment 'left' so the windows dont overlap.
-          } else {
-            width = displaysArray[displayIdx].bounds.width / 2;
-            left = displaysArray[displayIdx].bounds.left + width;
-          }
-          chrome.windows.update(windows[i].id, {
-            left: left,
-            top: displaysArray[displayIdx].bounds.top,
-            width: width,
-            height: displaysArray[displayIdx].bounds.height,
-            focused: true,
-          });
-        };
-    });
+    arrangeWindows();
   };
+  if (request === 'windowCarousel') {
+    arrangeWindows(carouselIndex);
+    carouselIndex++;
+  }
+
   if (request === 'cycleWindows') {
     chrome.windows.getLastFocused((window) => {
       const currentWindow = window.id;
@@ -102,3 +72,53 @@ chrome.runtime.onMessage.addListener((request) => {
   };
 
 });
+
+
+function arrangeWindows(carouselIndex = 0) {
+  console.log('carouselIdx', carouselIndex)
+
+  chrome.windows.getAll({ populate: true }, (windows) => {
+    const rotations = carouselIndex % windows.length;
+    console.log('carousel2', carouselIndex)
+    let rotatedWindows = new Array(windows.length);
+    if (rotations > 0) {
+      for (i = 0; i < windows.length; i++) {
+        const newPosition = (i + rotations) % windows.length;
+        rotatedWindows[newPosition] = windows[i];
+      }
+    } else rotatedWindows = windows;
+    console.log('windows', windows)
+    let ratio = windows.length / displaysArray.length;
+    console.log('ratio', ratio)
+  
+      // 1 or 2 windows per monitor
+      let displayIdx = -1, left, width;
+      for (let i = 0; i < windows.length; i++) {
+        
+        // if # of windows remaining is equal to # of displays remaining, move to a new monitor, and leave the window as fullscreen.
+        if (windows.length - i < displaysArray.length - displayIdx) {
+          displayIdx++;
+          width = displaysArray[displayIdx].bounds.width;
+          left = displaysArray[displayIdx].bounds.left;
+  
+        // if i is even, this indicates the previous window is full, so move to a new monitor. There are more windows than monitors, so reduce width to take up only half the screen width.
+        } else if (i % 2 === 0) {
+          displayIdx++;
+          width = displaysArray[displayIdx].bounds.width / 2;
+          left = displaysArray[displayIdx].bounds.left;
+  
+        // otherwise, current window must be the 2nd window in the current monitor, so reduce width and increment 'left' so the windows dont overlap.
+        } else {
+          width = displaysArray[displayIdx].bounds.width / 2;
+          left = displaysArray[displayIdx].bounds.left + width;
+        }
+        chrome.windows.update(rotatedWindows[i].id, {
+          left: left,
+          top: displaysArray[displayIdx].bounds.top,
+          width: width,
+          height: displaysArray[displayIdx].bounds.height,
+          focused: true,
+        });
+      };
+  });
+}
